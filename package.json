@@ -1,0 +1,11 @@
+{
+  "name": "chatty_server",
+  "version": "1.0.0",
+  "main": "server.js",
+  "author": "Niki Jiandani",
+  "license": "MIT",
+  "dependencies": {
+    "express": "4.17.1",
+    "ws": "7.0.1"
+  }
+}
