@@ -29,13 +29,29 @@ wss.on('connection', (ws) => {
   
   ws.on('message', (data) => {
     const myMessage = JSON.parse(data)
-    console.log(`User ${myMessage.username} said ${myMessage.content}`)
-    const messageWithId = {
-      id: uuid(),
-      username: myMessage.username,
-      content: myMessage.content
-    }
-    wss.broadcast(messageWithId)
+    if(myMessage.type === 'postMessage'){
+      console.log(`User ${myMessage.username} said ${myMessage.content}`)
+      const messageWithIdAndDate = {
+        id: uuid(),
+        createdAt: new Date(),
+        type: "incomingMessage",
+        username: myMessage.username,
+        content: myMessage.content
+      }
+      console.log("Sent message to client", messageWithIdAndDate)
+      wss.broadcast(messageWithIdAndDate)
+    } else if(myMessage.type === 'postNotification') {
+      const postMessageWithIdAndDate = {
+        id: uuid(),
+        createdAt: new Date(),
+        type: "incomingNotification",
+          content: myMessage.content
+        }
+        console.log("Sent notification to client", postMessageWithIdAndDate)
+        wss.broadcast(postMessageWithIdAndDate)
+      } else {
+        console.log("I couldn't identify the incoming message")
+      }
   });
 
   // Set up a callback for when a client closes the socket. This usually means they closed their browser.
