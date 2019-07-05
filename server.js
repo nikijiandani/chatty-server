@@ -1,6 +1,6 @@
 const express = require('express');
 const SocketServer = require('ws').Server;
-const uuid = require('uuid/v1');
+const uuid = require('uuid/v4');
 
 // Set the port to 3001
 const PORT = 3001;
@@ -18,6 +18,8 @@ SocketServer.prototype.broadcast = function(msg) {
   });
 };
 
+// const userNames = {};
+
 // Create the WebSockets server
 const wss = new SocketServer({ server });
 
@@ -28,6 +30,9 @@ wss.on('connection', (ws) => {
   console.log('Client connected');
   console.log("Total Number of users connected: ", wss.clients.size)
 
+  // const userId = uuid();
+  // userNames[userId] = "Anonymous";
+
   const currentUsers = {
     type: "incomingUserCount",
     numberOfUsers: wss.clients.size,
@@ -37,6 +42,7 @@ wss.on('connection', (ws) => {
   ws.on('message', (data) => {
     const myMessage = JSON.parse(data)
     if(myMessage.type === 'postMessage'){
+      // userNames[userId] = myMessage.username;
       console.log(`User ${myMessage.username} said ${myMessage.content}`)
       const messageWithIdAndDate = {
         id: uuid(),
@@ -72,8 +78,11 @@ wss.on('connection', (ws) => {
     }
     wss.broadcast(currentUsers)
     wss.broadcast({
+      id: uuid(),
       type: "incomingNotification",
-      content: 'A user has disconnected'
+      content: `User has disconnected`,
+      // content: `${userNames[userId]} has disconnected`
     })
+    // delete userNames[userId];
   });
 });
