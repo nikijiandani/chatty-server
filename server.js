@@ -26,6 +26,13 @@ const wss = new SocketServer({ server });
 // the ws parameter in the callback.
 wss.on('connection', (ws) => {
   console.log('Client connected');
+  console.log("Total Number of users connected: ", wss.clients.size)
+
+  const currentUsers = {
+    type: "incomingUserCount",
+    numberOfUsers: wss.clients.size,
+  }
+  wss.broadcast(currentUsers)
   
   ws.on('message', (data) => {
     const myMessage = JSON.parse(data)
@@ -40,7 +47,8 @@ wss.on('connection', (ws) => {
       }
       console.log("Sent message to client", messageWithIdAndDate)
       wss.broadcast(messageWithIdAndDate)
-    } else if(myMessage.type === 'postNotification') {
+    } else if(myMessage.type === 'postNotification' || myMessage.type === 'postUserJoined') {
+      console.log("Incoming notification from client", myMessage)
       const postMessageWithIdAndDate = {
         id: uuid(),
         createdAt: new Date(),
@@ -55,5 +63,17 @@ wss.on('connection', (ws) => {
   });
 
   // Set up a callback for when a client closes the socket. This usually means they closed their browser.
-  ws.on('close', () => console.log('Client disconnected'));
+  ws.on('close', () => {
+    console.log('Client disconnected')
+    console.log("Total Number of users connected: ", wss.clients.size)
+    const currentUsers = {
+      type: "incomingUserCount",
+      numberOfUsers: wss.clients.size,
+    }
+    wss.broadcast(currentUsers)
+    wss.broadcast({
+      type: "incomingNotification",
+      content: 'A user has disconnected'
+    })
+  });
 });
