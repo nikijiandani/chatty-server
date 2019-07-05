@@ -18,7 +18,7 @@ SocketServer.prototype.broadcast = function(msg) {
   });
 };
 
-// const userNames = {};
+let users;
 
 // Create the WebSockets server
 const wss = new SocketServer({ server });
@@ -29,9 +29,9 @@ const wss = new SocketServer({ server });
 wss.on('connection', (ws) => {
   console.log('Client connected');
   console.log("Total Number of users connected: ", wss.clients.size)
+  console.log("WSS CLients: ", wss.clients)
 
-  // const userId = uuid();
-  // userNames[userId] = "Anonymous";
+  users = [...wss.clients];
 
   const currentUsers = {
     type: "incomingUserCount",
@@ -62,6 +62,9 @@ wss.on('connection', (ws) => {
           content: myMessage.content
         }
         console.log("Sent notification to client", postMessageWithIdAndDate)
+        if(myMessage.type === 'postUserJoined'){
+          ws.username = myMessage.username
+        }
         wss.broadcast(postMessageWithIdAndDate)
       } else {
         console.log("I couldn't identify the incoming message")
@@ -72,6 +75,9 @@ wss.on('connection', (ws) => {
   ws.on('close', () => {
     console.log('Client disconnected')
     console.log("Total Number of users connected: ", wss.clients.size)
+    wss.clients.forEach((client) => console.log(client.username))
+    const userThatLeft = users.filter((user) => !wss.clients.has(user))
+    console.log([...userThatLeft[0]][0].username)
     const currentUsers = {
       type: "incomingUserCount",
       numberOfUsers: wss.clients.size,
